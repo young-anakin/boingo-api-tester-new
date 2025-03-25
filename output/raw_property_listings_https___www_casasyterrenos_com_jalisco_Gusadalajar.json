@@ -1,0 +1,178 @@
+[
+  {
+    "address": {
+      "country": "Mexico",
+      "region": null,
+      "city": "Guadalajara",
+      "district": "Colonia San Juan de Dios"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa en venta en colonia San Juan de Dios, Guadalajara",
+      "price": "2300000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "5.0"
+      },
+      {
+        "feature": "Bathrooms",
+        "value": "1.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "image_link_here"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  },
+  {
+    "address": {
+      "country": "Mexico",
+      "region": "Sector Libertad",
+      "city": "Guadalajara",
+      "district": "Colonia San Juan de Dios"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa en venta en Colonia San Juan de Dios en Sector Libertad",
+      "price": "3250000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "7.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "image_link_here"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  },
+  {
+    "address": {
+      "country": "Mexico",
+      "region": "El Retiro",
+      "city": "Balbino Davalos",
+      "district": "Guadalajara"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa impecable en venta cerca del parque Morelos en la zona de El Retiro, Balbino Davalos.",
+      "price": "3100000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "4.0"
+      },
+      {
+        "feature": "Bathrooms",
+        "value": "2.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "URL copiada al portapapeles"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  },
+  {
+    "address": {
+      "country": "Mexico",
+      "region": "CASA EN VENTA PARA REMODELAR SOBRE AV. REVOLUCI\u00d3N",
+      "city": "FRENTE AL COLEGIO AN\u00c1HUAC REVOLUCI\u00d3N",
+      "district": "Guadalajara"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa en venta para remodelar ubicada sobre Av. Revoluci\u00f3n, frente al Colegio An\u00e1huac Revoluci\u00f3n.",
+      "price": "4700000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "5.0"
+      },
+      {
+        "feature": "Bathrooms",
+        "value": "3.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "URL copiada al portapapeles"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  }
+]

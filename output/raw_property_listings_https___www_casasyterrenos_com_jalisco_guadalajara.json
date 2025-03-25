@@ -1,0 +1,133 @@
+[
+  {
+    "address": {
+      "country": "Mexico",
+      "region": "Casa en venta en colonia San Juan de Dios",
+      "city": "Guadalajara",
+      "district": "Guadalajara"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa en venta en colonia San Juan de Dios, Guadalajara",
+      "price": "2300000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "5.0"
+      },
+      {
+        "feature": "Bathrooms",
+        "value": "1.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "image_url_here"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  },
+  {
+    "address": {
+      "country": "Mexico",
+      "region": "El Retiro",
+      "city": "Balbino Davalos",
+      "district": "Guadalajara"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa impecable en venta cerca del parque Morelos en Guadalajara.",
+      "price": "3100000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "4.0"
+      },
+      {
+        "feature": "Bathrooms",
+        "value": "2.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "valid_image_url"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  },
+  {
+    "address": {
+      "country": "Mexico",
+      "region": "El Retiro",
+      "city": "Balbino Davalos",
+      "district": "Guadalajara"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "Casa impecable en venta cerca del parque Morelos en Guadalajara.",
+      "price": "4700000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "5.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "valid_image_url"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  }
+]
