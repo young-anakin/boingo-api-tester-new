@@ -1,6 +1,65 @@
 # Boingo API Tester
 
-A FastAPI application for testing Boingo API endpoints. This application provides a clean interface to interact with the Boingo API for scraping targets, results, agent status, and analytics.
+A FastAPI application with Celery for property data scraping and processing.
+
+## Prerequisites
+
+- Python 3.8+
+- Docker
+- Redis (via Docker)
+
+## Setup Instructions
+
+1. Start Docker on your system
+
+2. Set up Redis using Docker:
+   ```bash
+   # Check running containers
+   docker ps
+   
+   # Remove existing Redis container if any
+   docker rm -f redis-container
+   
+   # Start Redis container
+   docker run --name redis-container -d -p 6379:6379 redis
+   ```
+
+3. Start the Celery worker:
+   ```bash
+   python -m celery -A app.core.celery_app worker --loglevel=info --pool=solo -Q scraper_queue,cleaner_queue
+   ```
+
+4. Start the FastAPI server:
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
+
+The application will be available at `http://localhost:8000`
+
+## API Documentation
+
+Once the server is running, you can access the API documentation at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+## Project Structure
+
+```
+.
+├── app/
+│   ├── core/
+│   ├── models/
+│   └── routers/
+├── Crawler/
+│   ├── cleaner_agent.py
+│   ├── crawleragent.py
+│   └── formatter_agent.py
+└── requirements.txt
+```
+
+## License
+
+MIT
 
 ## Features
 
@@ -57,10 +116,6 @@ The application provides the following categories of endpoints:
 - **/scraping-results** - Endpoints for managing scraping results
 - **/agent-status** - Endpoints for managing agent status
 - **/scraping-analytics** - Endpoints for accessing scraping analytics
-
-## License
-
-MIT
 
 ## Contributing
 
