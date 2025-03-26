@@ -1,0 +1,45 @@
+{
+  "data": [
+    {
+      "address": {
+        "country": "Mexico",
+        "region": "Jalisco",
+        "city": "Guadalajara",
+        "district": "San Juan de Dios"
+      },
+      "property": {
+        "lat": "20.6597",
+        "lng": "-103.3496"
+      },
+      "listing": {
+        "listing_title": "Casa en venta en colonia San Juan de Dios, Guadalajara",
+        "description": "Casa en venta en colonia San Juan de Dios, Guadalajara",
+        "price": "$2,300,000",
+        "currency": "MXN",
+        "status": "available",
+        "listing_type": "residential",
+        "category": "house"
+      },
+      "features": [
+        {
+          "feature": "Bedroom",
+          "value": "5"
+        },
+        {
+          "feature": "Bathroom",
+          "value": "1"
+        },
+        {
+          "feature": "Parking",
+          "value": "0"
+        },
+        {
+          "feature": "Area",
+          "value": "170m2"
+        }
+      ],
+      "files": [],
+      "contact": null
+    }
+  ]
+}

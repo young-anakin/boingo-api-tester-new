@@ -28,16 +28,24 @@
         "value": "1.0"
       },
       {
+        "feature": "Square Footage",
+        "value": "170"
+      },
+      {
         "feature": "Property Type",
         "value": "house"
       },
       {
         "feature": "Listing Type",
         "value": "buy"
+      },
+      {
+        "feature": "C\u00f3digo",
+        "value": "3701345"
       }
     ],
     "files": [
-      "image_url_here"
+      "https://example.com/image1.jpg"
     ],
     "user": {
       "email": null,
@@ -47,17 +55,17 @@
   {
     "address": {
       "country": "Mexico",
-      "region": "El Retiro",
-      "city": "Balbino Davalos",
-      "district": "Guadalajara"
+      "region": "Sector Libertad",
+      "city": "Guadalajara",
+      "district": "Colonia San Juan de Dios"
     },
     "property": {
       "lat": null,
       "lng": null
     },
     "listing": {
-      "description": "Casa impecable en venta cerca del parque Morelos en Guadalajara.",
-      "price": "3100000.0",
+      "description": "Spacious house with 7 bedrooms, 2 bathrooms, and 2 parking spaces in a great location.",
+      "price": "3250000.0",
       "currency": "MXN",
       "status": "Available",
       "listing_type": "buy",
@@ -66,7 +74,7 @@
     "features": [
       {
         "feature": "Bedrooms",
-        "value": "4.0"
+        "value": "7.0"
       },
       {
         "feature": "Bathrooms",
@@ -82,7 +90,48 @@
       }
     ],
     "files": [
-      "valid_image_url"
+      "image_link_here"
+    ],
+    "user": {
+      "email": null,
+      "phone": null
+    }
+  },
+  {
+    "address": {
+      "country": "Mexico",
+      "region": null,
+      "city": "Guadalajara",
+      "district": "Barrio de Analco"
+    },
+    "property": {
+      "lat": null,
+      "lng": null
+    },
+    "listing": {
+      "description": "House for sale in Barrio de Analco, Guadalajara with a tenant already in place.",
+      "price": "3100000.0",
+      "currency": "MXN",
+      "status": "Available",
+      "listing_type": "buy",
+      "category": "house"
+    },
+    "features": [
+      {
+        "feature": "Bedrooms",
+        "value": "4.0"
+      },
+      {
+        "feature": "Property Type",
+        "value": "house"
+      },
+      {
+        "feature": "Listing Type",
+        "value": "buy"
+      }
+    ],
+    "files": [
+      "image_link_here"
     ],
     "user": {
       "email": null,
@@ -101,7 +150,7 @@
       "lng": null
     },
     "listing": {
-      "description": "Casa impecable en venta cerca del parque Morelos en Guadalajara.",
+      "description": "Casa impecable en venta por el parque Morelos en El Retiro, Balbino Davalos",
       "price": "4700000.0",
       "currency": "MXN",
       "status": "Available",
@@ -114,16 +163,28 @@
         "value": "5.0"
       },
       {
+        "feature": "Bathrooms",
+        "value": "3.0"
+      },
+      {
+        "feature": "Square Footage",
+        "value": "261"
+      },
+      {
         "feature": "Property Type",
         "value": "house"
       },
       {
         "feature": "Listing Type",
         "value": "buy"
+      },
+      {
+        "feature": "Code",
+        "value": "3718328"
       }
     ],
     "files": [
-      "valid_image_url"
+      "URL copiada al portapapeles"
     ],
     "user": {
       "email": null,

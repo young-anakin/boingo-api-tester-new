@@ -1,0 +1,130 @@
+{
+  "data": [
+    {
+      "address": {
+        "country": "Mexico",
+        "region": "Jalisco",
+        "city": "Guadalajara",
+        "district": "San Juan de Dios"
+      },
+      "property": {
+        "lat": "20.6597",
+        "lng": "-103.3496"
+      },
+      "listing": {
+        "listing_title": "Casa en venta en colonia San Juan de Dios, Guadalajara",
+        "description": "Casa en venta en colonia San Juan de Dios en Sector Libertad.",
+        "price": "$2,300,000",
+        "currency": "MXN",
+        "status": "available",
+        "listing_type": "house",
+        "category": "residential"
+      },
+      "features": [
+        {
+          "feature": "Bedroom",
+          "value": "5"
+        },
+        {
+          "feature": "Bathroom",
+          "value": "1"
+        },
+        {
+          "feature": "Parking",
+          "value": "0"
+        },
+        {
+          "feature": "Area",
+          "value": "170m2"
+        }
+      ],
+      "files": [],
+      "contact": null
+    },
+    {
+      "address": {
+        "country": "Mexico",
+        "region": "Jalisco",
+        "city": "Guadalajara",
+        "district": "Colonia San Juan de Dios, Sector Libertad"
+      },
+      "property": {
+        "lat": "20.6597",
+        "lng": "-103.3496"
+      },
+      "listing": {
+        "listing_title": "Casa en Colonia San Juan de Dios en Sector Libertad",
+        "description": "Casa en venta en Colonia San Juan de Dios en Sector Libertad",
+        "price": "$3,250,000",
+        "currency": "MXN",
+        "status": "Available",
+        "listing_type": "Residential",
+        "category": "House"
+      },
+      "features": [
+        {
+          "feature": "Bedroom",
+          "value": "7"
+        },
+        {
+          "feature": "Bathroom",
+          "value": "2"
+        },
+        {
+          "feature": "Parking",
+          "value": "2"
+        },
+        {
+          "feature": "Area",
+          "value": "264m2"
+        }
+      ],
+      "files": [
+        "URL copiada al portapapeles",
+        "Ver m\u00e1s fotos"
+      ],
+      "contact": null
+    },
+    {
+      "address": {
+        "country": "Mexico",
+        "region": "Jalisco",
+        "city": "Guadalajara",
+        "district": "Analco"
+      },
+      "property": {
+        "lat": "20.6597",
+        "lng": "-103.3496"
+      },
+      "listing": {
+        "listing_title": "Casa en el barrio de Analco",
+        "description": "Casa en venta en el barrio de Analco, Guadalajara con inquilino",
+        "price": "$3,100,000",
+        "currency": "MXN",
+        "status": "Available",
+        "listing_type": "Residential",
+        "category": "House"
+      },
+      "features": [
+        {
+          "feature": "Bedroom",
+          "value": "4"
+        },
+        {
+          "feature": "Bathroom",
+          "value": "2"
+        },
+        {
+          "feature": "Parking",
+          "value": "2"
+        },
+        {
+          "feature": "Area",
+          "value": "246m2"
+        }
+      ],
+      "files": [],
+      "contact": null
+    }
+  ]
+}

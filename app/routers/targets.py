@@ -102,20 +102,12 @@ async def get_target_by_id(target_id: str, credentials: HTTPAuthorizationCredent
 
 @router.post("", response_model=ScrapingResultResponse)
 async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """Create a new scraping target and trigger the scraping process"""
     try:
         logger.info(f"Creating new scraping target for URL: {target.website_url}")
         logger.debug(f"Request body: {json.dumps(target.dict(), indent=2)}")
 
-        target_id = str(uuid.uuid4())
-        max_depth = target.search_range if target.search_range is not None else 2
-        max_pages = target.max_properties if target.max_properties is not None else 2
-        max_chunks = 3
-        scraper_delay = 2.0
-        cleaner_delay = 2.0
-        formatter_delay = 2.0
-        max_total_tokens = 2000
-
+        # First, notify the Boingo API to create the scraping target
+        logger.info("Notifying Boingo API")
         async with httpx.AsyncClient() as client:
             boingo_response = await client.post(
                 f"{BOINGO_API_URL}/scraping-target",
@@ -127,10 +119,32 @@ async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthoriza
             )
             logger.info(f"Boingo API notification status: {boingo_response.status_code}")
             logger.debug(f"Boingo API response: {boingo_response.text}")
+
+            # Check if the response is successful
             if boingo_response.status_code not in [200, 201]:
                 logger.warning(f"Failed to notify Boingo API (status {boingo_response.status_code})")
+                raise HTTPException(status_code=boingo_response.status_code, detail=f"Failed to notify Boingo API: {boingo_response.text}")
 
-        # Use the registered task names from the Celery worker logs
+            # Parse the response to get the data.id
+            try:
+                response_data = boingo_response.json()
+                target_id = response_data.get("data", {}).get("id")
+                if not target_id:
+                    logger.error("Boingo API response does not contain data.id")
+                    raise HTTPException(status_code=500, detail="Boingo API response does not contain a valid target ID")
+            except (ValueError, KeyError) as e:
+                logger.error(f"Failed to parse Boingo API response: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to parse Boingo API response: {str(e)}")
+
+        # Use the data.id as the target_id
+        max_depth = target.search_range if target.search_range is not None else 2
+        max_pages = target.max_properties if target.max_properties is not None else 2
+        max_chunks = 3
+        scraper_delay = 2.0
+        cleaner_delay = 2.0
+        max_total_tokens = 2000
+
+        logger.info("Preparing to queue Celery tasks")
         workflow = chain(
             celery_app.signature(
                 "Crawler.property_pipeline.scrape_task",
@@ -141,25 +155,21 @@ async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthoriza
                     max_chunks,
                     scraper_delay,
                     max_total_tokens,
-                    target_id
+                    target_id  # Use the data.id from Boingo API
                 ],
                 queue="scraper_queue"
             ),
             celery_app.signature(
                 "Crawler.property_pipeline.clean_task",
                 kwargs={
-                    "delay_seconds": cleaner_delay,
-                    "credentials": {"token": credentials.credentials}  # Pass credentials for clean_task
+                    "delay_seconds": cleaner_delay
                 },
                 queue="cleaner_queue"
-            ),
-            celery_app.signature(
-                "Crawler.property_pipeline.format_task",
-                kwargs={"delay_seconds": formatter_delay},
-                queue="formatter_queue"
             )
         )
+        logger.info("Workflow created, applying async")
         task = workflow.apply_async()
+        logger.info(f"Task queued - Task ID: {task.id}, Target ID: {target_id}")
 
         task_metadata = {
             "target_id": target_id,
@@ -168,11 +178,11 @@ async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthoriza
             "created_at": datetime.utcnow().isoformat()
         }
         redis_client.set(f"scraping_task:{task.id}", json.dumps(task_metadata))
-        logger.info(f"Task queued - Task ID: {task.id}, Target ID: {target_id}")
+        logger.info(f"Task metadata stored in Redis for Task ID: {task.id}")
 
         return ScrapingResultResponse(
             id=task.id,
-            target_id=target_id,
+            target_id=target_id,  # Use the data.id from Boingo API
             status="queued",
             website_url=target.website_url
         )
@@ -182,7 +192,8 @@ async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthoriza
     except Exception as e:
         logger.error(f"Error creating target: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating target: {str(e)}")
-
+    
+    
 @router.get("/status/{task_id}", response_model=ScrapingResultResponse)
 async def get_task_status(task_id: str, credentials: HTTPAuthorizationCredentials = Security(security)):
     """
@@ -205,9 +216,9 @@ async def get_task_status(task_id: str, credentials: HTTPAuthorizationCredential
             status = "pending"
         elif result.state == "SUCCESS":
             status = "completed"
-            # Update metadata with final result
+            # Update metadata with final result from clean_task
             task_metadata["status"] = "completed"
-            task_metadata["num_listings"] = result.result.get("num_formatted", 0)  # Use format_task result
+            task_metadata["num_listings"] = result.result.get("num_cleaned", 0)  # Use clean_task result
             redis_client.set(f"scraping_task:{task_id}", json.dumps(task_metadata))
         elif result.state == "FAILURE":
             status = "failed"
