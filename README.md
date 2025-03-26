@@ -7,6 +7,7 @@ A FastAPI application with Celery for property data scraping and processing.
 - Python 3.8+
 - Docker
 - Redis (via Docker)
+- OpenAI API Key
 
 ## Setup Instructions
 
@@ -24,12 +25,21 @@ A FastAPI application with Celery for property data scraping and processing.
    docker run --name redis-container -d -p 6379:6379 redis
    ```
 
-3. Start the Celery worker:
+3. Configure OpenAI API Key:
+   - Open `Crawler/cleaner_agent.py`
+   - Open `Crawler/crawleragent.py`
+   - Open `Crawler/formatter_agent.py`
+   - In each file, replace the empty API key with your OpenAI API key:
+     ```python
+     client = OpenAI(api_key="your-api-key-here")
+     ```
+
+4. Start the Celery worker:
    ```bash
    python -m celery -A app.core.celery_app worker --loglevel=info --pool=solo -Q scraper_queue,cleaner_queue
    ```
 
-4. Start the FastAPI server:
+5. Start the FastAPI server:
    ```bash
    uvicorn app.main:app --reload --port 8000
    ```
