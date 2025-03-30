@@ -6,7 +6,7 @@ celery_app = Celery(
     'tasks',
     broker='redis://localhost:6379/0',
     backend='redis://localhost:6379/0',
-    include=['Crawler.property_pipeline']  # Ensure tasks from property_pipeline are included
+    include=['Crawler.property_pipeline']  # Load tasks from this module
 )
 
 # Configure Celery queues and routes
@@ -39,3 +39,6 @@ celery_app.conf.update(
         '*': {'rate_limit': '10/s'}
     }
 )
+
+if __name__ == '__main__':
+    celery_app.start()

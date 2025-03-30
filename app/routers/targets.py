@@ -1,4 +1,4 @@
-# app/routers/targets.py
+import uuid
 from fastapi import APIRouter, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -6,11 +6,8 @@ from typing import Optional
 import httpx
 import json
 import logging
-import redis
 from datetime import datetime
-from celery import chain
-from celery.result import AsyncResult
-import uuid
+from Crawler.queue_manager import add_to_queue  # Adjust path based on your structure
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,16 +20,6 @@ from ..models.models import (
 )
 from ..core.config import BOINGO_API_URL
 from .auth import security
-from ..core.celery_app import celery_app  # Import the shared Celery app
-
-# Initialize Redis client for storing task metadata
-try:
-    redis_client = redis.Redis(host='localhost', port=6379, db=0)
-    redis_client.ping()
-    logger.info("Successfully connected to Redis for task metadata storage")
-except redis.ConnectionError as e:
-    logger.error(f"Failed to connect to Redis: {str(e)}")
-    raise
 
 router = APIRouter(
     prefix="/scraping-target",
@@ -51,9 +38,7 @@ class ScrapingResultResponse(BaseModel):
 
 @router.get("")
 async def get_all_targets(credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Get all scraping targets
-    """
+    """Get all scraping targets."""
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -69,9 +54,7 @@ async def get_all_targets(credentials: HTTPAuthorizationCredentials = Security(s
 
 @router.get("/{target_id}")
 async def get_target_by_id(target_id: str, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Get scraping target by ID
-    """
+    """Get scraping target by ID."""
     try:
         logger.info(f"Fetching target by ID: {target_id}")
         async with httpx.AsyncClient() as client:
@@ -102,13 +85,17 @@ async def get_target_by_id(target_id: str, credentials: HTTPAuthorizationCredent
 
 @router.post("", response_model=ScrapingResultResponse)
 async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthorizationCredentials = Security(security)):
+    """Create a new scraping target and queue it in queue.json."""
     try:
         logger.info(f"Creating new scraping target for URL: {target.website_url}")
-        logger.debug(f"Request body: {json.dumps(target.dict(), indent=2)}")
+        logger.debug(f"Request body received: {json.dumps(target.dict(), indent=2)}")
+        logger.debug(f"Credentials token: {credentials.credentials[:10]}... (truncated for security)")
 
-        # First, notify the Boingo API to create the scraping target
+        # Notify Boingo API
         logger.info("Notifying Boingo API")
+        logger.debug(f"Boingo API URL: {BOINGO_API_URL}/scraping-target")
         async with httpx.AsyncClient() as client:
+            logger.debug("Preparing to send POST request to Boingo API")
             boingo_response = await client.post(
                 f"{BOINGO_API_URL}/scraping-target",
                 headers={
@@ -117,140 +104,90 @@ async def create_target(target: ScrapingTargetCreate, credentials: HTTPAuthoriza
                 },
                 json=target.dict()
             )
-            logger.info(f"Boingo API notification status: {boingo_response.status_code}")
-            logger.debug(f"Boingo API response: {boingo_response.text}")
+            logger.info(f"Boingo API response status: {boingo_response.status_code}")
+            logger.debug(f"Boingo API response headers: {dict(boingo_response.headers)}")
+            logger.debug(f"Boingo API response text (raw): {boingo_response.text!r}")
+            logger.debug(f"Response text length: {len(boingo_response.text)} characters")
+            logger.debug(f"Response text first 60 chars: {boingo_response.text[:60]!r}")
+            logger.debug(f"Response text last 60 chars: {boingo_response.text[-60:]!r}")
 
-            # Check if the response is successful
+            # Handle Boingo API response
             if boingo_response.status_code not in [200, 201]:
-                logger.warning(f"Failed to notify Boingo API (status {boingo_response.status_code})")
-                raise HTTPException(status_code=boingo_response.status_code, detail=f"Failed to notify Boingo API: {boingo_response.text}")
+                error_msg = boingo_response.text
+                logger.warning(f"Boingo API returned non-success status: {boingo_response.status_code}")
+                logger.debug(f"Error response content: {error_msg!r}")
+                if boingo_response.status_code == 400 and "Already Registered" in error_msg:
+                    logger.warning(f"Target {target.website_url} already registered")
+                    raise HTTPException(status_code=400, detail="Scraping target already registered")
+                raise HTTPException(status_code=boingo_response.status_code, detail=f"Failed to notify Boingo API: {error_msg}")
 
-            # Parse the response to get the data.id
+            # Parse target_id from response
+            response_text = boingo_response.text.strip()
+            logger.debug(f"Stripped response text: {response_text!r}")
+            logger.debug(f"Stripped response length: {len(response_text)} characters")
             try:
-                response_data = boingo_response.json()
+                logger.debug("Attempting to parse JSON from response")
+                response_data = json.loads(response_text)
+                logger.debug(f"Parsed JSON: {json.dumps(response_data, indent=2)}")
                 target_id = response_data.get("data", {}).get("id")
+                logger.debug(f"Extracted target_id: {target_id}")
                 if not target_id:
                     logger.error("Boingo API response does not contain data.id")
+                    logger.debug(f"Full parsed response: {response_data}")
                     raise HTTPException(status_code=500, detail="Boingo API response does not contain a valid target ID")
-            except (ValueError, KeyError) as e:
-                logger.error(f"Failed to parse Boingo API response: {str(e)}")
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error: {str(e)}")
+                logger.debug(f"Failed response text: {response_text!r}")
+                logger.debug(f"Error position: line {e.lineno}, column {e.colno}, char {e.pos}")
+                logger.debug(f"Text around error (char {e.pos-10}:{e.pos+10}): {response_text[max(0, e.pos-10):e.pos+10]!r}")
+                raise HTTPException(status_code=500, detail=f"Invalid JSON response from Boingo API: {str(e)}")
+            except Exception as e:
+                logger.error(f"Unexpected parsing error: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Failed to parse Boingo API response: {str(e)}")
 
-        # Use the data.id as the target_id
-        max_depth = target.search_range if target.search_range is not None else 2
-        max_pages = target.max_properties if target.max_properties is not None else 2
-        max_chunks = 3
-        scraper_delay = 2.0
-        cleaner_delay = 2.0
-        max_total_tokens = 2000
+        # Queue task
+        logger.debug("Generating task ID")
+        task_id = str(uuid.uuid4())
+        logger.debug(f"Task ID generated: {task_id}")
+        logger.debug(f"Adding to queue: {{'website_url': {target.website_url}, 'target_id': {target_id}}}")
+        add_to_queue("scraping", {"website_url": target.website_url, "target_id": target_id})
+        logger.info(f"Task queued in queue.json - Task ID: {task_id}, Target ID: {target_id}")
 
-        logger.info("Preparing to queue Celery tasks")
-        workflow = chain(
-            celery_app.signature(
-                "Crawler.property_pipeline.scrape_task",
-                args=[
-                    target.website_url,
-                    max_depth,
-                    max_pages,
-                    max_chunks,
-                    scraper_delay,
-                    max_total_tokens,
-                    target_id  # Use the data.id from Boingo API
-                ],
-                queue="scraper_queue"
-            ),
-            celery_app.signature(
-                "Crawler.property_pipeline.clean_task",
-                kwargs={
-                    "delay_seconds": cleaner_delay
-                },
-                queue="cleaner_queue"
-            )
-        )
-        logger.info("Workflow created, applying async")
-        task = workflow.apply_async()
-        logger.info(f"Task queued - Task ID: {task.id}, Target ID: {target_id}")
-
-        task_metadata = {
-            "target_id": target_id,
-            "website_url": target.website_url,
-            "status": "queued",
-            "created_at": datetime.utcnow().isoformat()
-        }
-        redis_client.set(f"scraping_task:{task.id}", json.dumps(task_metadata))
-        logger.info(f"Task metadata stored in Redis for Task ID: {task.id}")
-
-        return ScrapingResultResponse(
-            id=task.id,
-            target_id=target_id,  # Use the data.id from Boingo API
+        logger.debug("Preparing response")
+        response = ScrapingResultResponse(
+            id=task_id,
+            target_id=target_id,
             status="queued",
             website_url=target.website_url
         )
-    except redis.ConnectionError as e:
-        logger.error(f"Redis connection error: {str(e)}")
-        raise HTTPException(status_code=503, detail="Redis is unavailable")
+        logger.debug(f"Returning response: {response.dict()}")
+        return response
+
     except Exception as e:
         logger.error(f"Error creating target: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating target: {str(e)}")
-    
-    
+
+
 @router.get("/status/{task_id}", response_model=ScrapingResultResponse)
 async def get_task_status(task_id: str, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Check the status of a scraping task.
-    """
+    """Check the status of a scraping task (simplified without Redis/Celery)."""
     try:
         logger.info(f"Checking status for task ID: {task_id}")
-
-        # Retrieve task metadata from Redis
-        task_metadata_raw = redis_client.get(f"scraping_task:{task_id}")
-        if not task_metadata_raw:
-            raise HTTPException(status_code=404, detail="Task not found")
-        task_metadata = json.loads(task_metadata_raw)
-        target_id = task_metadata.get("target_id", "unknown")
-        website_url = task_metadata.get("website_url", "unknown")
-
-        # Check Celery task status
-        result = AsyncResult(task_id, app=celery_app)
-        if result.state == "PENDING":
-            status = "pending"
-        elif result.state == "SUCCESS":
-            status = "completed"
-            # Update metadata with final result from clean_task
-            task_metadata["status"] = "completed"
-            task_metadata["num_listings"] = result.result.get("num_cleaned", 0)  # Use clean_task result
-            redis_client.set(f"scraping_task:{task_id}", json.dumps(task_metadata))
-        elif result.state == "FAILURE":
-            status = "failed"
-            # Update metadata with error
-            task_metadata["status"] = "failed"
-            task_metadata["error"] = str(result.result)
-            redis_client.set(f"scraping_task:{task_id}", json.dumps(task_metadata))
-        else:
-            status = result.state.lower()
-
+        # Since we're not using Celery/Redis here, this is a placeholder
+        # You could extend queue_manager.py to track status if needed
         return ScrapingResultResponse(
             id=task_id,
-            target_id=target_id,
-            status=status,
-            website_url=website_url,
-            num_listings=task_metadata.get("num_listings"),
-            error=task_metadata.get("error")
+            target_id="unknown",  # Would need to track this in queue.json or elsewhere
+            status="queued",      # Simplified; enhance if status tracking is added
+            website_url="unknown"
         )
-    except redis.ConnectionError as e:
-        logger.error(f"Redis connection error: {str(e)}")
-        raise HTTPException(status_code=503, detail="Redis is unavailable")
-    except HTTPException as e:
-        raise e
     except Exception as e:
         logger.error(f"Error retrieving task status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving task status: {str(e)}")
 
 @router.put("")
 async def update_target(target: ScrapingTargetUpdate, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Update an existing scraping target
-    """
+    """Update an existing scraping target."""
     try:
         logger.info(f"Updating scraping target: {json.dumps(target.dict(), indent=2)}")
         async with httpx.AsyncClient() as client:
@@ -285,9 +222,7 @@ async def update_target(target: ScrapingTargetUpdate, credentials: HTTPAuthoriza
 
 @router.delete("")
 async def delete_target(target: ScrapingTargetDelete, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Delete a scraping target
-    """
+    """Delete a scraping target."""
     try:
         logger.info(f"Deleting scraping target: {json.dumps(target.dict(), indent=2)}")
         async with httpx.AsyncClient() as client:
@@ -322,9 +257,7 @@ async def delete_target(target: ScrapingTargetDelete, credentials: HTTPAuthoriza
 
 @router.post("/pause")
 async def pause_target(target: ScrapingTargetPause, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Pause a scraping target
-    """
+    """Pause a scraping target."""
     try:
         logger.info(f"Pausing scraping target: {json.dumps(target.dict(), indent=2)}")
         async with httpx.AsyncClient() as client:
@@ -359,9 +292,7 @@ async def pause_target(target: ScrapingTargetPause, credentials: HTTPAuthorizati
 
 @router.post("/unpause")
 async def unpause_target(target: ScrapingTargetPause, credentials: HTTPAuthorizationCredentials = Security(security)):
-    """
-    Unpause a scraping target
-    """
+    """Unpause a scraping target."""
     try:
         logger.info(f"Unpausing scraping target: {json.dumps(target.dict(), indent=2)}")
         async with httpx.AsyncClient() as client:
